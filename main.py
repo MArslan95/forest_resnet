@@ -1,6 +1,6 @@
 from custom_dataset import CustomDataset
 from evaluate_visualization import EvaluateVisualization
-# from resnet_model_101 import ResNet101v2, ResidualBlock
+from resnet_model_101 import ResNet101v2, ResidualBlock
 from resnet_50 import ResNet50, ResidualBlock
 from resnet_trainer_updated import ResNetTrainer
 import torch
@@ -27,37 +27,37 @@ def main():
     val_size = len(custom_dataset) - train_size
     train_dataset, val_dataset = torch.utils.data.random_split(custom_dataset, [train_size, val_size])
 
-    train_dataloader = DataLoader(train_dataset, batch_size=64, shuffle=True, num_workers=12)
-    val_dataloader = DataLoader(val_dataset, batch_size=64, shuffle=False, num_workers=12)
+    train_dataloader = DataLoader(train_dataset, batch_size=64, shuffle=True, num_workers=24)
+    val_dataloader = DataLoader(val_dataset, batch_size=64, shuffle=False, num_workers=24)
 
     # Create test dataset and DataLoader
     test_dataset = CustomDataset("./dataset/Test", transform=transform)
-    test_dataloader = DataLoader(test_dataset, batch_size=64, shuffle=False, num_workers=4)
+    test_dataloader = DataLoader(test_dataset, batch_size=64, shuffle=False, num_workers=12)
 
     # Create ResNet101v2 model
     num_classes = len(custom_dataset.classes)
-    # resnet101v2_model = ResNet101v2(num_classes)
+    resnet101v2_model = ResNet101v2(num_classes)
     # Create Resnet 50 Model
-    resnet50_model = ResNet50(num_classes)
+    # resnet50_model = ResNet50(num_classes)
 
     # Define loss function and optimizer
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(resnet50_model.parameters(), lr=0.001)
+    # optimizer = optim.Adam(resnet101v2_model.parameters(), lr=0.005)
+    optimizer = optim.SGD(resnet101v2_model.parameters(), lr=0.005,momentum=0.9)
 
     # Training and evaluation
     device = 'cuda' if torch.cuda.is_available() else 'cpu'  # Fix typo in 'is_available'
     trainer = ResNetTrainer(
-        model=resnet50_model,
+        model=resnet101v2_model,
         train_dataloader=train_dataloader,
         val_dataloader=val_dataloader,
-        
         test_dataloader=test_dataloader,
         criterion=criterion,
         optimizer=optimizer,
         device=device
     )
 
-    num_epochs = 50
+    num_epochs = 10
     trainer.train(num_epochs)
     trainer.evaluate()
 
