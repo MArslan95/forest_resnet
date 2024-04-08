@@ -6,7 +6,7 @@ from torchvision import transforms
 from evaluate_visualization import EvaluateVisualization
 
 # Training class
-class ResNetTrainer:
+class Trainer:
     def __init__(self, model, train_dataloader, val_dataloader, test_dataloader, criterion, optimizer, device='cuda'):
         self.model = model.to(device)
         self.train_dataloader = train_dataloader
