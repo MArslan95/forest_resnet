@@ -10,6 +10,7 @@ class EvaluateVisualization:
         plt.figure(figsize=(10, 5))
         plt.plot(train_losses, label='Training Loss')
         plt.plot(val_losses, label='Validation Loss')
+        # plt.plot(test_losses, label='Test Loss')
         plt.title('Training and Validation Loss')
         plt.xlabel('Epochs')
         plt.ylabel('Loss')
@@ -21,11 +22,38 @@ class EvaluateVisualization:
         plt.figure(figsize=(10, 5))
         plt.plot(train_accuracies, label='Training Accuracy')
         plt.plot(val_accuracies, label='Validation Accuracy')
-        plt.title('Training and Validation Accuracy')  # Changed from 'Loss' to 'Accuracy'
+        # plt.plot(test_accuracies, label='Test Accuracy')
+        plt.title('Training and ValidationAccuracy')  # Changed from 'Loss' to 'Accuracy'
         plt.xlabel('Epochs')
         plt.ylabel('Accuracy')  # Changed from 'Loss' to 'Accuracy'
         plt.legend()
         plt.show()
+    
+    @staticmethod
+    def plot_test_acc_loss_curve(test_accuracies,test_losses):  # Renamed from plot_acc_curve
+        plt.figure(figsize=(10, 5))
+        plt.plot(test_accuracies, label='Test Accuracy')
+        plt.plot(test_losses, label='Test Loss')
+        plt.title(' Test Accuracy and Loss ')  # Changed from 'Loss' to 'Accuracy'
+        plt.xlabel('Epochs')
+        plt.ylabel('Accuracy')  # Changed from 'Loss' to 'Accuracy'
+        plt.legend()
+        plt.show()
+        
+        
+        
+    # @staticmethod
+    # def polt_test_acc_loss(accuracy_test,test_loss):
+    #     plt.figure(figsize=(10, 5))
+    #     # plt.subplot(1, 2, 1)
+    #     plt.plot(accuracy_test, label='Test Accuracy')
+    #     plt.plot(test_loss,label='Test Loss')
+    #     plt.title('Test Accuracy And Loss') # Changed from 'Loss' to 'Accuracy
+    #     plt.xlabel('Epoch')
+    #     plt.ylabel('Accuracy')
+    #     plt.legend()
+    #     plt.show()
+        
 
     @staticmethod
     def plot_confusion_matrix(y_true, y_pred, class_names):

@@ -7,7 +7,7 @@ from evaluate_visualization import EvaluateVisualization
 
 # Training class
 class Trainer:
-    def __init__(self, model, train_dataloader, val_dataloader, test_dataloader, criterion, optimizer, device='cuda'):
+    def __init__(self, model, train_dataloader, val_dataloader, test_dataloader, criterion, optimizer,scheduler, device='cuda'):
         self.model = model.to(device)
         self.train_dataloader = train_dataloader
         self.val_dataloader = val_dataloader
@@ -15,6 +15,7 @@ class Trainer:
         self.criterion = criterion
         self.optimizer = optimizer
         self.device = device
+        self.scheduler = scheduler
         self.evaluator = EvaluateVisualization()
 
     def _train_one_epoch(self):
@@ -38,7 +39,7 @@ class Trainer:
             correct_train += (predicted_train == labels).sum().item()
 
         accuracy_train = correct_train / total_train
-        return epoch_train_loss / total_train, accuracy_train
+        return (epoch_train_loss / total_train, accuracy_train)
 
     def _validate_one_epoch(self, dataloader):
         self.model.eval()
@@ -59,12 +60,14 @@ class Trainer:
 
         accuracy_val = correct_val / total_val
         return val_loss / total_val, accuracy_val
-
+    
     def train(self, num_epochs):
         train_losses = []
         val_losses = []
+        test_losses = []  # New: To store test losses
         train_accuracies = []
         val_accuracies = []
+        test_accuracies = []  # New: To store test accuracies
 
         for epoch in range(num_epochs):
             # Training
@@ -73,18 +76,25 @@ class Trainer:
             # Validation
             val_loss, val_accuracy = self._validate_one_epoch(self.val_dataloader)
 
+            # Test
+            test_loss, test_accuracy = self.evaluate()
+
             # Print progress
-            print(f"Epoch [{epoch + 1}/{num_epochs}], Train Loss: {train_loss:.4f}, Train Acc: {train_accuracy:.4f}, Val Loss: {val_loss:.4f}, Val Acc: {val_accuracy:.4f}")
+            print(f"Epoch [{epoch + 1}/{num_epochs}], Train Loss: {train_loss:.4f}, Train Acc: {train_accuracy:.4f}, Val Loss: {val_loss:.4f}, Val Acc: {val_accuracy:.4f}, Test Loss: {test_loss:.4f}, Test Acc: {test_accuracy:.4f}")
 
             # Update the training and validation loss and accuracy lists
             train_losses.append(train_loss)
             val_losses.append(val_loss)
+            test_losses.append(test_loss)
             train_accuracies.append(train_accuracy)
             val_accuracies.append(val_accuracy)
+            test_accuracies.append(test_accuracy)
 
         # Plotting loss curve and accuracy curve
-        self.evaluator.plot_loss_curve(train_losses, val_losses)
-        self.evaluator.plot_accuracy_curve(train_accuracies, val_accuracies)
+        self.evaluator.plot_loss_curve(train_losses, val_losses)  # Include test_losses
+        self.evaluator.plot_accuracy_curve(train_accuracies, val_accuracies )  # Include test_accuracies
+        self.evaluator.plot_test_acc_loss_curve(test_accuracies,test_losses)
+
 
     def evaluate(self):
         self.model.eval()
@@ -114,33 +124,13 @@ class Trainer:
         test_loss /= total_test  # Calculate average test loss
 
         # Plotting confusion matrix
-        class_names = self.test_dataloader.dataset.classes
-        self.evaluator.plot_confusion_matrix(y_true_test, y_pred_test, class_names)
-        print(f'Test Loss: {test_loss:.4f}, Test Accuracy: {accuracy_test:.4f}')
-        print('Evaluation finished.')
-        
-    # def evaluate(self):
-    #     self.model.eval()
-    #     y_true_test = []
-    #     y_pred_test = []
-    #     correct_test = 0
-    #     total_test = 0
-
-    #     with torch.no_grad():
-    #         for inputs, labels in self.test_dataloader:
-    #             inputs, labels = inputs.to(self.device), labels.to(self.device)
-    #             outputs = self.model(inputs)
-
-    #             _, predicted_test = torch.max(outputs.data, 1)
-    #             total_test += labels.size(0)
-    #             correct_test += (predicted_test == labels).sum().item()
-
-    #             y_true_test.extend(labels.cpu().numpy())
-    #             y_pred_test.extend(predicted_test.cpu().numpy())
-
-    #     accuracy_test = correct_test / total_test
-    #     # Plotting confusion matrix
-    #     class_names = self.test_dataloader.dataset.classes
-    #     self.evaluator.plot_confusion_matrix(y_true_test, y_pred_test, class_names)
-    #     print(f'Test Accuracy: {accuracy_test:.4f}')
-    #     print('Evaluation finished.')
+        # Plotting confusion matrix
+        # if hasattr(self.test_dataloader.dataset, 'classes'):  # Check if 'classes' attribute exists
+        #     class_names = self.test_dataloader.dataset.classes
+        # else:
+        #     class_names = None
+            # class_names = self.test_dataloader.dataset.dataset.classes
+        # self.evaluator.plot_confusion_matrix(y_true_test, y_pred_test, class_names)
+        # print(f'Test Loss: {test_loss:.4f}, Test Accuracy: {accuracy_test:.4f}')
+        # print('Evaluation finished.')
+        return test_loss, accuracy_test
